@@ -2,58 +2,36 @@ let nome = document.querySelector("#nome");
 let peso = document.querySelector("#peso");
 let altura = document.querySelector("#altura");
 
+document.querySelector("#btn-calcular").addEventListener("click", (event) => {
+  console.log("Cliquei no botão");
+});
+
+document.querySelector("#btn-calcular").addEventListener("click", (event) => {
+  event.preventDefault();
+  let imc = calcularIMC(peso.value, altura.value);
+  addLocalStorage(nome.value, peso.value, altura.value, imc.toFixed(2));
+  carregarLocalStorage();
+  limparFormulario();
+});
+
+
 function calcularIMC(peso, altura){
   return peso / (altura * altura);
 }
 
-let table = document.querySelector('.table')
+let tabela = document.querySelector('.table');
 
-function addTable(nome, peso, altura, imc, indice){
-  
-  let colNome = document.createElement('td');
-  colNome.innerHTML = nome;
 
-  let colPeso = document.createElement('td');
-  colPeso.innerHTML = peso;
 
-  let colAltura = document.createElement('td');
-  colAltura.innerHTML = altura;
-
-  let colImc = document.createElement('td');
-  colImc.innerHTML = imc;
-
-  let colDelet = document.createElement('td');
-  let btnDelet = document.createElement('button');
-  btnDelet.innerHTML = "<img src ='assets/images/delete.svg'>";
-  btnDelet.classList.add('btn');
-  btnDelet.classList.add('btn-danger');
-  colDelet.appendChild(btnDelet);
-
-  // Listener para deletar
-  btnDelet.addEventListener("click", (event) => {
-    event.preventDefault();
-    deletarLinha(indice);
-  });
-
-  let linha = document.createElement('tr');
-  linha.appendChild(colNome);
-  linha.appendChild(colPeso);
-  linha.appendChild(colAltura);
-  linha.appendChild(colImc);
-  linha.appendChild(colDelet);
-
-  table.appendChild(linha);
-}
-
-function cleanForm(){
-  nome.value = "";
-  peso.value = "";
-  altura.value = "";
+function limparFormulario(){
+  nome.value = '';
+  peso.value = '';
+  altura.value = '';
   nome.focus();
 }
 
 function addLocalStorage(nome, peso, altura, imc){
-  
+
   let pessoa = {
     "nome": nome,
     "peso": peso,
@@ -61,67 +39,137 @@ function addLocalStorage(nome, peso, altura, imc){
     "imc": imc
   }
 
-
   if (localStorage.getItem("listaIMC")){
+    
     let listaIMC = JSON.parse(localStorage.getItem("listaIMC"));
     listaIMC.push(pessoa);
     localStorage.setItem("listaIMC", JSON.stringify(listaIMC));
-  }
-  else{
+  
+  } else {
+
     let listaIMC = [];
     listaIMC.push(pessoa);
     localStorage.setItem("listaIMC", JSON.stringify(listaIMC));
   }
-  showMessage("Cadastrado com sucesso!", "add");
+
+  mostrarMensagem("IMC cadastrado!", "add");
 }
 
-function cleanTable(){
-  let qtdLinhas = table.rows.length;
-
-  for(let i = qtdLinhas - 1; i > 0; i--){
-    table.deleteRow(i);
-  }
-}
-
-function loadLocalStorage (){
-
-  cleanTable();
+function carregarLocalStorage(){
+  
+  limparTabela();
 
   if (localStorage.getItem("listaIMC")){
+    
     let listaIMC = JSON.parse(localStorage.getItem("listaIMC"));
     listaIMC.forEach((pessoa, indice) => {
-      addTable(pessoa.nome, pessoa.peso, pessoa.altura, pessoa.imc, indice);
+      addTabela(pessoa.nome, pessoa.peso, pessoa.altura, pessoa.imc, indice);
     });
+  } else{    
+    mostrarMensagem("Nenhum IMC a ser exibido", "table");
   }
 }
 
-function deletarLinha(indice){
+function limparTabela(){
+  let qtdLinhas = tabela.rows.length;
+  for (let i = qtdLinhas - 1; i > 0; i--){
+    tabela.deleteRow(i);
+  }
+}
+
+function addTabela(nome, peso, altura, imc, indice, classific){
+  
+  let colunaNome = document.createElement('td');
+  colunaNome.innerHTML = nome;
+
+  let colunaPeso = document.createElement('td');
+  colunaPeso.innerHTML = peso;
+
+  let colunaAltura = document.createElement('td');
+  colunaAltura.innerHTML = altura;
+
+  let colunaIMC = document.createElement('td');
+  colunaIMC.innerHTML = imc;
+
+  let colunaDeletar = document.createElement('td');
+  let btnDeletar = document.createElement('button');
+  btnDeletar.innerHTML = '<img src="assets/images/delete.svg" alt="Deletar IMC">';
+  btnDeletar.classList.add('btn');
+  btnDeletar.classList.add('btn-danger');  
+
+  // Adicionando um event listerner
+  btnDeletar.addEventListener("click", (event) => {
+    event.preventDefault();
+    deletarLinha(indice);
+  });
+
+  colunaDeletar.appendChild(btnDeletar);
+
+  let colunaClassificacao = document.createElement('td');
+  if (imc < 18.5){
+    classific = "Abaixo do peso ideal"
+  }
+  else if(imc >= 18.5 && imc <= 24.9){
+    classific = "Peso ideal. Parabéns!"
+  }
+  else if(imc >= 25.0 && imc <= 29.9){
+    classific = "Levemente acima do peso"
+  }
+  else if(imc >= 30.0 && imc <= 34.9){
+    classific = "Obesidade grau I"
+  }
+  else if(imc >= 35.0 && imc <= 39.9){
+    classific = "Obesidade grau II(severa)"
+  }
+  else if(imc >= 40.0){
+    classific = "Obesidade grau III(mórbida)"
+  }
+  
+  colunaClassificacao.innerHTML = classific;
+
+  let linha = document.createElement('tr');
+  linha.appendChild(colunaNome);
+  linha.appendChild(colunaPeso);
+  linha.appendChild(colunaAltura);
+  linha.appendChild(colunaIMC);
+  linha.appendChild(colunaDeletar);
+  linha.appendChild(colunaClassificacao);
+
+  tabela.appendChild(linha);
+}
+
+function deletarLinha(index){
   let pessoas = JSON.parse(localStorage.getItem("listaIMC"));
-  pessoas.splice(indice, 1);
+  pessoas.splice(index, 1);
   localStorage.setItem("listaIMC", JSON.stringify(pessoas));
-  loadLocalStorage();
-  showMessage("Removido com sucesso!", "delete");
+  carregarLocalStorage();
+
+  mostrarMensagem("IMC deletado!", "delete");
 }
 
 let mensagem = document.querySelector("#mensagem");
-function showMessage(msg, tipo){
-  mensagem.innerHTML = msg;
-  mensagem.classList.remove('d-none');
 
-  if (tipo == "add"){
-    mensagem.classList.add('alert-success');
-  } else if (tipo == "delete"){
-    mensagem.classList.add('alert-danger');
+function mostrarMensagem(msg, tipo){
+  mensagem.innerHTML = msg;
+  mensagem.classList.add("d-block");
+
+  if (tipo == 'add'){
+    mensagem.classList.add("alert-success");
+  } else if (tipo == 'delete'){
+    mensagem.classList.add("alert-danger");
+  } else if (tipo == 'table'){
+    mensagem.classList.add("alert-warning");
   }
 
-  setTimeout(() =>{
+  setTimeout(() => {
     mensagem.innerHTML = "";
-    mensagem.classList.remove('alert-succes');
-    mensagem.classList.remove('alert-danger');
-    mensagem.classList.add('d-none');
+    mensagem.classList.remove("alert-danger");
+    mensagem.classList.remove("alert-success");
+    mensagem.classList.remove("alert-warning");
+    mensagem.classList.remove("d-none");
   }, 2000);
 }
-
+/*
 document.querySelector("#btn-calcular").addEventListener("click", (event) => {
   event.preventDefault();
   let imc = calcularIMC(peso.value, altura.value);
@@ -132,4 +180,4 @@ document.querySelector("#btn-calcular").addEventListener("click", (event) => {
   cleanForm();
 
 });
-
+*/
