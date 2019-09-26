@@ -132,8 +132,8 @@ function addTabela(nome, peso, altura, imc, indice, classific){
   linha.appendChild(colunaPeso);
   linha.appendChild(colunaAltura);
   linha.appendChild(colunaIMC);
-  linha.appendChild(colunaDeletar);
   linha.appendChild(colunaClassificacao);
+  linha.appendChild(colunaDeletar);
 
   tabela.appendChild(linha);
 }
